@@ -15,7 +15,7 @@ A Streamlit application for AI-powered varicose vein detection and staging from 
 
 1. **Install dependencies:**
    ```bash
-   pip install -r requirements.txt
+   python -m pip install -r requirements.txt
    ```
 
 2. **Run the application:**
