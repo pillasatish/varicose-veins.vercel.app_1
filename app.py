@@ -3,6 +3,7 @@ import requests
 import base64
 from PIL import Image
 import io
+import os
 
 # Page configuration
 st.set_page_config(
@@ -56,6 +57,15 @@ st.markdown("""
         border-left: 4px solid #10b981;
         margin: 1rem 0;
     }
+    
+    .error-box {
+        background: #fef2f2;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #ef4444;
+        margin: 1rem 0;
+        color: #dc2626;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -73,51 +83,40 @@ if 'analysis_result' not in st.session_state:
 if 'uploaded_image' not in st.session_state:
     st.session_state.uploaded_image = None
 
-# Create two columns
-col1, col2 = st.columns([1, 1])
+def get_api_key():
+    """Get API key from various sources"""
+    # Try Streamlit secrets first
+    try:
+        if hasattr(st, 'secrets') and 'XAI_API_KEY' in st.secrets:
+            return st.secrets['XAI_API_KEY']
+    except:
+        pass
+    
+    # Try environment variable
+    api_key = os.getenv('XAI_API_KEY')
+    if api_key:
+        return api_key
+    
+    return None
 
-with col1:
-    st.markdown("### 📤 Upload Leg Image")
+def analyze_image_with_xai(image_base64):
+    """Analyze image using xAI Grok Vision API"""
+    api_key = get_api_key()
     
-    # File uploader
-    uploaded_file = st.file_uploader(
-        "Choose an image file",
-        type=['jpg', 'jpeg', 'png', 'webp'],
-        help="Upload a clear image of the leg showing potential varicose veins"
-    )
+    if not api_key:
+        return "Error: xAI API key not found. Please set XAI_API_KEY in your environment variables or Streamlit secrets."
     
-    if uploaded_file is not None:
-        # Display the uploaded image
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
-        st.session_state.uploaded_image = uploaded_file
-        
-        # Analyze button
-        if st.button("🔍 Start Analysis", type="primary", use_container_width=True):
-            with st.spinner("Analyzing image for varicose veins..."):
-                # Convert image to base64
-                img_buffer = io.BytesIO()
-                image.save(img_buffer, format='JPEG')
-                img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
-                
-                # Call OpenAI API
-                try:
-                    api_key = st.secrets.get("OPENAI_API_KEY", "")
-                    if not api_key:
-                        st.error("OpenAI API key not configured. Please add it to your Streamlit secrets.")
-                        st.stop()
-                    
-                    headers = {
-                        "Content-Type": "application/json",
-                        "Authorization": f"Bearer {api_key}"
-                    }
-                    
-                    payload = {
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": """[Identity]  
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+    
+    payload = {
+        "model": "grok-vision-beta",
+        "messages": [
+            {
+                "role": "system",
+                "content": """[Identity]  
 You are VenoScan, an expert AI diagnostic assistant with computer vision specialized in detecting and staging varicose veins from patient leg images.
 
 [Style]  
@@ -149,44 +148,122 @@ You are VenoScan, an expert AI diagnostic assistant with computer vision special
 Probability: 73%  
 Stage: Stage 3 – Varicose Veins  
 Rope-like, bulging veins >3mm seen along calf; likely source of reported swelling and heaviness."""
-                            },
-                            {
-                                "role": "user",
-                                "content": [
-                                    {
-                                        "type": "text",
-                                        "text": "Please analyze this image for varicose veins."
-                                    },
-                                    {
-                                        "type": "image_url",
-                                        "image_url": {
-                                            "url": f"data:image/jpeg;base64,{img_base64}"
-                                        }
-                                    }
-                                ]
-                            }
-                        ],
-                        "max_tokens": 500,
-                        "temperature": 0.5
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Please analyze this image for varicose veins."
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{image_base64}"
+                        }
                     }
-                    
-                    response = requests.post(
-                        "https://api.openai.com/v1/chat/completions",
-                        headers=headers,
-                        json=payload,
-                        timeout=30
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        analysis = result['choices'][0]['message']['content']
-                        st.session_state.analysis_result = analysis
-                        st.success("Analysis completed!")
-                    else:
-                        st.error(f"API Error: {response.status_code} - {response.text}")
-                        
-                except Exception as e:
-                    st.error(f"Error during analysis: {str(e)}")
+                ]
+            }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.3
+    }
+    
+    try:
+        response = requests.post(
+            "https://api.x.ai/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            return result['choices'][0]['message']['content']
+        else:
+            return f"API Error: {response.status_code} - {response.text}"
+            
+    except Exception as e:
+        return f"Error during analysis: {str(e)}"
+
+def simulate_analysis(image):
+    """Simulate analysis for demo purposes when API key is not available"""
+    import random
+    
+    # Simulate processing time
+    import time
+    time.sleep(2)
+    
+    # Generate a realistic-looking analysis
+    probability = random.randint(15, 85)
+    
+    if probability < 30:
+        stage = "No Visible Signs"
+        reasoning = "Clear skin appearance with normal venous patterns. No visible spider veins, reticular veins, or varicose veins detected. Skin coloration appears normal without signs of chronic venous insufficiency."
+    elif probability < 50:
+        stage = "Stage 1 – Spider Veins"
+        reasoning = "Small, thin web-like veins visible on skin surface. These telangiectasias appear as red or blue thread-like patterns. Primarily cosmetic concern with minimal clinical significance."
+    elif probability < 70:
+        stage = "Stage 2 – Reticular Veins"
+        reasoning = "Blue-green veins 1-3mm in diameter visible beneath skin. May indicate early venous insufficiency. Patient might experience mild leg heaviness or aching symptoms."
+    else:
+        stage = "Stage 3 – Varicose Veins"
+        reasoning = "Prominent bulging, rope-like veins ≥3mm diameter clearly visible. These tortuous veins indicate significant venous insufficiency and may cause pain, swelling, and leg heaviness."
+    
+    return f"""Probability: {probability}%
+Stage: {stage}
+
+Medical Reasoning:
+{reasoning}
+
+Note: This is a simulated analysis for demonstration purposes."""
+
+# Create two columns
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    st.markdown("### 📤 Upload Leg Image")
+    
+    # API Key status
+    api_key = get_api_key()
+    if api_key:
+        st.success("✅ xAI API key configured")
+    else:
+        st.warning("⚠️ xAI API key not found - using demo mode")
+        st.info("To use real AI analysis, set your XAI_API_KEY environment variable or add it to Streamlit secrets.")
+    
+    # File uploader
+    uploaded_file = st.file_uploader(
+        "Choose an image file",
+        type=['jpg', 'jpeg', 'png', 'webp'],
+        help="Upload a clear image of the leg showing potential varicose veins"
+    )
+    
+    if uploaded_file is not None:
+        # Display the uploaded image
+        image = Image.open(uploaded_file)
+        st.image(image, caption="Uploaded Image", use_column_width=True)
+        st.session_state.uploaded_image = uploaded_file
+        
+        # Analyze button
+        if st.button("🔍 Start Analysis", type="primary", use_container_width=True):
+            with st.spinner("Analyzing image for varicose veins..."):
+                # Convert image to base64
+                img_buffer = io.BytesIO()
+                # Convert to RGB if necessary (for PNG with transparency)
+                if image.mode in ('RGBA', 'LA', 'P'):
+                    image = image.convert('RGB')
+                image.save(img_buffer, format='JPEG', quality=85)
+                img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
+                
+                # Analyze with AI or simulate
+                if api_key:
+                    analysis = analyze_image_with_xai(img_base64)
+                else:
+                    analysis = simulate_analysis(image)
+                
+                st.session_state.analysis_result = analysis
+                st.success("Analysis completed!")
     
     # Photo Guidelines
     st.markdown("""
@@ -245,6 +322,16 @@ with st.sidebar:
     - **Stage 4**: Skin changes (pigmentation, eczema)
     - **Stage 5**: Ulcers (open wounds)
     """)
+    
+    st.markdown("---")
+    st.markdown("### 🔧 Setup Instructions")
+    st.markdown("""
+    **For real AI analysis:**
+    1. Get an xAI API key from [console.x.ai](https://console.x.ai)
+    2. Set environment variable: `XAI_API_KEY=your_key_here`
+    3. Or add to Streamlit secrets
+    
+    **Current mode:** """ + ("🤖 AI Analysis" if api_key else "🎭 Demo Mode"))
     
     st.markdown("---")
     st.markdown("**⚠️ Important:** This tool is for educational purposes only. Always consult healthcare professionals for medical advice.")
