@@ -1,91 +1,138 @@
 # VenoScan - AI Varicose Vein Analysis
 
-A Streamlit application for AI-powered varicose vein detection and staging from leg images using xAI's Grok Vision API.
+A modern web application for AI-powered varicose vein detection and staging from leg images. Built with Node.js, Express, and vanilla JavaScript for optimal performance and compatibility.
 
-## Features
+## 🌟 Features
 
-- 🖼️ Easy image upload interface
-- 🤖 AI-powered analysis using xAI's Grok Vision
-- 📊 Probability assessment and stage classification
-- 🩺 Medical-grade diagnostic reasoning
-- 📱 Responsive web interface
-- 🎭 Demo mode when API key is not available
+- 🖼️ **Drag & Drop Image Upload** - Easy-to-use interface with file validation
+- 🤖 **AI-Powered Analysis** - Advanced computer vision for medical assessment
+- 📊 **Detailed Results** - Probability assessment and stage classification
+- 🩺 **Medical-Grade Reasoning** - Comprehensive diagnostic explanations
+- 📱 **Responsive Design** - Works perfectly on all devices
+- 🎭 **Demo Mode** - Fully functional without API keys
+- 🔒 **Privacy First** - Images processed securely, never stored
 
-## Quick Start
+## 🚀 Quick Start
 
 1. **Install dependencies:**
    ```bash
-   python -m pip install -r requirements.txt
+   npm install
    ```
 
-2. **Run the application:**
+2. **Start the development server:**
    ```bash
-   streamlit run app.py
+   npm run dev
    ```
 
-The app will run in demo mode initially. For real AI analysis, configure your xAI API key (see setup below).
+3. **Open your browser:**
+   Navigate to `http://localhost:3000`
 
-## Setup for Real AI Analysis
+The application runs in demo mode by default with simulated AI analysis results.
 
-### Option 1: Environment Variable
-```bash
-export XAI_API_KEY="your-xai-api-key-here"
-streamlit run app.py
+## 🔧 Configuration
+
+### For Real AI Analysis (Optional)
+
+To enable actual AI-powered analysis using xAI's Grok Vision API:
+
+1. **Get an xAI API key:**
+   - Visit [console.x.ai](https://console.x.ai)
+   - Sign up or log in
+   - Create a new API key
+
+2. **Configure the API key:**
+   ```bash
+   # Option 1: Environment variable
+   export XAI_API_KEY="your-xai-api-key-here"
+   
+   # Option 2: Update .env file
+   echo "XAI_API_KEY=your-xai-api-key-here" >> .env
+   ```
+
+3. **Restart the server:**
+   ```bash
+   npm run dev
+   ```
+
+## 📋 Varicose Vein Stages
+
+The application can detect and classify varicose veins across five stages:
+
+- **Stage 1 - Spider Veins**: Thin, web-like veins on skin surface (cosmetic)
+- **Stage 2 - Reticular Veins**: Blue-green veins 1-3mm in diameter
+- **Stage 3 - Varicose Veins**: Bulging, rope-like veins ≥3mm diameter
+- **Stage 4 - Skin Changes**: Pigmentation, eczema, chronic venous insufficiency
+- **Stage 5 - Ulcers**: Open, non-healing wounds requiring immediate attention
+
+## 🏗️ Project Structure
+
+```
+venoscan-ai/
+├── public/
+│   ├── index.html      # Main application interface
+│   ├── styles.css      # Comprehensive styling
+│   └── script.js       # Client-side functionality
+├── server.js           # Express server and API endpoints
+├── package.json        # Dependencies and scripts
+├── .env               # Environment configuration
+└── README.md          # Documentation
 ```
 
-### Option 2: Streamlit Secrets
-1. Edit `.streamlit/secrets.toml`
-2. Add your API key:
-   ```toml
-   XAI_API_KEY = "your-xai-api-key-here"
-   ```
+## 🌐 API Endpoints
 
-### Getting an xAI API Key
-1. Visit [console.x.ai](https://console.x.ai)
-2. Sign up or log in
-3. Navigate to API Keys section
-4. Create a new API key
-5. Copy and use in your configuration
+- `GET /` - Main application interface
+- `POST /api/analyze` - Image analysis endpoint
+- `GET /api/health` - Server health check
 
-## Deployment
+## 🎨 Design Features
 
-### Streamlit Cloud
-1. Push your code to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Connect your GitHub repository
-4. Add your xAI API key in the Streamlit Cloud secrets:
-   ```toml
-   XAI_API_KEY = "your-xai-api-key-here"
-   ```
+- **Modern UI/UX** - Clean, professional medical interface
+- **Gradient Animations** - Smooth visual feedback and transitions
+- **Progress Indicators** - Real-time analysis progress display
+- **Responsive Grid** - Optimized layouts for all screen sizes
+- **Accessibility** - WCAG compliant with keyboard navigation
+- **Dark Mode Ready** - Prepared for theme switching
+
+## 🔒 Privacy & Security
+
+- **No Data Storage** - Images are processed in memory only
+- **Secure Upload** - File validation and size limits
+- **CORS Protection** - Configured for secure cross-origin requests
+- **Input Sanitization** - All user inputs are validated
+
+## 🚀 Deployment
+
+### Netlify (Recommended)
+1. Connect your GitHub repository
+2. Set build command: `npm run build` (if you add a build script)
+3. Set publish directory: `public`
+4. Add environment variables in Netlify dashboard
 
 ### Other Platforms
-- **Heroku**: Set `XAI_API_KEY` environment variable
-- **Railway**: Set `XAI_API_KEY` environment variable
-- **Render**: Set `XAI_API_KEY` environment variable
+- **Heroku**: Add `XAI_API_KEY` to config vars
+- **Railway**: Set environment variables in dashboard
+- **Render**: Configure environment variables
 
-## Usage
+## 🧪 Demo Mode
 
-1. Upload a clear image of a leg showing potential varicose veins
-2. Click "Start Analysis" to begin AI analysis
-3. Review the probability assessment and stage classification
-4. Read the medical reasoning provided by the AI
+When no API key is configured, the application runs in demo mode featuring:
+- Realistic simulated analysis results
+- Full UI/UX functionality
+- Educational varicose vein staging information
+- No external API dependencies
 
-## Varicose Vein Stages
+## ⚠️ Medical Disclaimer
 
-- **Stage 1**: Spider veins (thin, web-like veins)
-- **Stage 2**: Reticular veins (1-3mm, blue/green)
-- **Stage 3**: Varicose veins (≥3mm, bulging, rope-like)
-- **Stage 4**: Skin changes (pigmentation, eczema)
-- **Stage 5**: Ulcers (open, non-healing wounds)
+This application is for educational and informational purposes only. It should not replace professional medical consultation. Always consult with qualified healthcare providers for proper diagnosis and treatment of medical conditions.
 
-## Demo Mode
+## 📄 License
 
-When no API key is configured, the app runs in demo mode with simulated analysis results. This allows you to test the interface and functionality without requiring an API key.
+MIT License - Feel free to use and modify for your projects.
 
-## Disclaimer
+## 🤝 Contributing
 
-This application is for educational and informational purposes only. It should not replace professional medical consultation. Always consult with healthcare providers for proper diagnosis and treatment.
+Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
 
-## License
+---
 
-MIT License - feel free to use and modify as needed.
+**Built with ❤️ for better healthcare accessibility**
